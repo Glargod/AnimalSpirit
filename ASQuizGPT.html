@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spirit Vibe Quiz</title>
+  <style>
+    body {
+      font-family: 'Georgia', serif;
+      background: linear-gradient(#0f0f0f, #2f2f2f);
+      color: #f0e6d6;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #1c1c1c;
+      padding: 20px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      border-bottom: 2px solid #444;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2em;
+    }
+    main {
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+    .question {
+      margin-bottom: 15px;
+    }
+    .question-title {
+      font-weight: bold;
+    }
+    .choices label {
+      display: block;
+      margin: 5px 0;
+    }
+    button {
+      margin: 10px 5px;
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    .result {
+      border-top: 2px solid #888;
+      padding-top: 20px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Spirit Vibe Quiz</h1>
+    <p>Discover your spirit animal by the firelight of your soul</p>
+  </header>
+  <main>
+    <form id="quizForm"></form>
+    <button onclick="submitQuiz()">Submit</button>
+    <button onclick="resetQuiz()">Reset</button>
+    <div class="result" id="result"></div>
+  </main>
+  <script>
+    // Placeholder for actual questions and animal mapping
+    const questions = [];
+    const results = {};
+
+    // Example of a few questions to be expanded in full version
+    questions.push(
+      { id: 'EI1', dichotomy: 'EI', text: 'Do you feel energized by social events?', a: 'E', b: 'I' },
+      { id: 'SN1', dichotomy: 'SN', text: 'Do you focus more on facts than ideas?', a: 'S', b: 'N' },
+      { id: 'TF1', dichotomy: 'TF', text: 'Do you decide based on logic over emotion?', a: 'T', b: 'F' },
+      { id: 'JP1', dichotomy: 'JP', text: 'Do you prefer planning over spontaneity?', a: 'J', b: 'P' },
+      { id: 'PA1', dichotomy: 'PA', text: 'Would you rather make peace than win a fight?', a: 'Peaceful', b: 'Hostile' },
+      { id: 'RF1', dichotomy: 'RF', text: 'Would you trust a dragon to protect you?', a: 'Fiction', b: 'Real' },
+    );
+
+    function renderQuestions() {
+      const form = document.getElementById('quizForm');
+      form.innerHTML = '';
+      questions.forEach(q => {
+        const div = document.createElement('div');
+        div.className = 'question';
+        div.innerHTML = `
+          <div class="question-title">${q.text}</div>
+          <div class="choices">
+            <label><input type="radio" name="${q.id}" value="A"> A (${q.a})</label>
+            <label><input type="radio" name="${q.id}" value="B"> B (${q.b})</label>
+            <label><input type="radio" name="${q.id}" value="C"> C (Not Sure)</label>
+          </div>
+        `;
+        form.appendChild(div);
+      });
+    }
+
+    function submitQuiz() {
+      const formData = new FormData(document.getElementById('quizForm'));
+      const scores = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0, Peaceful: 0, Hostile: 0, Real: 0, Fiction: 0 };
+
+      for (const q of questions) {
+        const value = formData.get(q.id);
+        if (!value) {
+          alert('Please answer all questions before submitting.');
+          return;
+        }
+        if (value === 'A') scores[q.a] += 1;
+        else if (value === 'B') scores[q.b] += 1;
+        else if (value === 'C') {
+          scores[q.a] += 0.5;
+          scores[q.b] += 0.5;
+        }
+      }
+
+      const mbti = [scores.E >= scores.I ? 'E' : 'I', scores.S >= scores.N ? 'S' : 'N', scores.T >= scores.F ? 'T' : 'F', scores.J >= scores.P ? 'J' : 'P'].join('');
+      const alignment = scores.Peaceful >= scores.Hostile ? 'Peaceful' : 'Hostile';
+      const creature = (scores.Real > scores.Fiction || (scores.Real === scores.Fiction && mbti[0] === 'E')) ? 'Real' : 'Fiction';
+      const key = `${mbti}-${creature}-${alignment}`;
+
+      const result = results[key] || { name: 'Mystery Spirit', description: 'A being beyond the veil of this quiz.', link: '#' };
+
+      const personalityNames = {
+        INTP: ['Brain', 'Earth'], ENTJ: ['Leader', 'Fire'], ENFP: ['Dreamer', 'Air'], //... full list here
+      };
+      const [name, element] = personalityNames[mbti] || ['Wanderer', 'Spirit'];
+
+      const output = `
+        <h2>You’re a ${name}: The ${result.name}</h2>
+        <p><strong>Element:</strong> ${element}</p>
+        <p>${result.description}</p>
+        <p><a href="${result.link}" target="_blank">Learn more</a></p>
+      `;
+      document.getElementById('result').innerHTML = output;
+    }
+
+    function resetQuiz() {
+      renderQuestions();
+      document.getElementById('result').innerHTML = '';
+    }
+
+    renderQuestions();
+  </script>
+</body>
+</html>
