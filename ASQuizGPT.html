@@ -65,24 +65,97 @@
     <div class="result" id="result"></div>
   </main>
   <script>
-    // Placeholder for actual questions and animal mapping
     const questions = [];
-    const results = {};
+    const dichotomies = {
+      EI: [
+        "Do you feel energized by social events?",
+        "Do you prefer to talk through ideas rather than think them through alone?",
+        "Do you enjoy being the center of attention?",
+        "Do you often initiate conversations?",
+        "Do you prefer group work over solo tasks?",
+        "Do you find it easy to meet new people?",
+        "Do you get restless when you’re alone for too long?",
+        "Do you think best while talking?"
+      ],
+      SN: [
+        "Do you trust facts more than ideas?",
+        "Do you prefer practical experience to abstract theories?",
+        "Do you notice details others miss?",
+        "Do you focus more on what is than what could be?",
+        "Do you like step-by-step instructions?",
+        "Do you find it easier to work with what’s real and proven?",
+        "Do you value tradition over innovation?",
+        "Do you describe things literally rather than metaphorically?"
+      ],
+      TF: [
+        "Do you make decisions with your head over your heart?",
+        "Do you value truth over tact?",
+        "Do you prioritize logic over emotion?",
+        "Do you believe fairness means treating everyone the same?",
+        "Do you argue for clarity even if it causes tension?",
+        "Do you stay calm in emotionally charged situations?",
+        "Do you critique more than compliment?",
+        "Do you feel uncomfortable with emotional displays?"
+      ],
+      JP: [
+        "Do you prefer scheduled events over spontaneous ones?",
+        "Do you make lists and follow them?",
+        "Do you feel stressed when plans change?",
+        "Do you finish tasks early rather than last-minute?",
+        "Do you like having things decided?",
+        "Do you organize everything around you?",
+        "Do you dislike surprises?",
+        "Do you value structure in your day?"
+      ],
+      PA: [
+        "Would you rather avoid conflict than confront it?",
+        "Do you forgive easily?",
+        "Do you believe most people are good at heart?"
+      ],
+      RF: [
+        "Would you trust a dragon to protect you?",
+        "Do you believe mythical creatures could exist?",
+        "Do you prefer fantasy stories to documentaries?",
+        "Would you befriend a unicorn over a horse?",
+        "Do you feel more drawn to legends than real history?"
+      ]
+    };
 
-    // Example of a few questions to be expanded in full version
-    questions.push(
-      { id: 'EI1', dichotomy: 'EI', text: 'Do you feel energized by social events?', a: 'E', b: 'I' },
-      { id: 'SN1', dichotomy: 'SN', text: 'Do you focus more on facts than ideas?', a: 'S', b: 'N' },
-      { id: 'TF1', dichotomy: 'TF', text: 'Do you decide based on logic over emotion?', a: 'T', b: 'F' },
-      { id: 'JP1', dichotomy: 'JP', text: 'Do you prefer planning over spontaneity?', a: 'J', b: 'P' },
-      { id: 'PA1', dichotomy: 'PA', text: 'Would you rather make peace than win a fight?', a: 'Peaceful', b: 'Hostile' },
-      { id: 'RF1', dichotomy: 'RF', text: 'Would you trust a dragon to protect you?', a: 'Fiction', b: 'Real' },
-    );
+    let idCounter = 1;
+    for (const [key, list] of Object.entries(dichotomies)) {
+      for (let i = 0; i < list.length; i++) {
+        questions.push({
+          id: key + i,
+          dichotomy: key,
+          text: list[i],
+          a: key[0],
+          b: key[1]
+        });
+      }
+    }
+
+    // Animal results
+    const results = {
+      "ISTJ-Real-Peaceful": { name: "Bee", description: "A structured and community-driven insect known for its hard work and cooperation.", link: "https://en.wikipedia.org/wiki/Bee" },
+      "ISTJ-Real-Hostile": { name: "Northern Goshawk", description: "A fierce bird of prey with unmatched focus and precision.", link: "https://en.wikipedia.org/wiki/Northern_goshawk" },
+      "ISTJ-Fiction-Peaceful": { name: "Komainu", description: "A guardian spirit lion-dog of Japanese folklore, embodying loyalty and protection.", link: "https://en.wikipedia.org/wiki/Komainu" },
+      "ISTJ-Fiction-Hostile": { name: "Gargoyle", description: "A watchful, fierce stone creature that wards off evil.", link: "https://en.wikipedia.org/wiki/Gargoyle" },
+      "INTP-Fiction-Peaceful": { name: "Cecaelia", description: "A mythical being blending human and octopus features, wise and inquisitive.", link: "https://en.wikipedia.org/wiki/Cecaelia" },
+      // Add the remaining 59 entries here...
+    };
+
+    const personalityNames = {
+      ISTJ: ["Worker", "Earth"], ISFJ: ["Carer", "Water"], INFJ: ["Seer", "Water"], INTJ: ["Planner", "Earth"],
+      ISTP: ["Fixer", "Earth"], ISFP: ["Artist", "Water"], INFP: ["Dreamy One", "Water"], INTP: ["Brain", "Earth"],
+      ESTP: ["Doer", "Fire"], ESFP: ["Party Star", "Air"], ENFP: ["Dreamer", "Air"], ENTP: ["Thinker", "Fire"],
+      ESTJ: ["Boss", "Fire"], ESFJ: ["Friend", "Air"], ENFJ: ["Helper", "Air"], ENTJ: ["Leader", "Fire"]
+    };
 
     function renderQuestions() {
       const form = document.getElementById('quizForm');
       form.innerHTML = '';
-      questions.forEach(q => {
+      const shuffled = questions.sort(() => Math.random() - 0.5);
+      shuffled.forEach(q => {
         const div = document.createElement('div');
         div.className = 'question';
         div.innerHTML = `
@@ -122,9 +195,6 @@
 
       const result = results[key] || { name: 'Mystery Spirit', description: 'A being beyond the veil of this quiz.', link: '#' };
 
-      const personalityNames = {
-        INTP: ['Brain', 'Earth'], ENTJ: ['Leader', 'Fire'], ENFP: ['Dreamer', 'Air'], //... full list here
-      };
       const [name, element] = personalityNames[mbti] || ['Wanderer', 'Spirit'];
 
       const output = `
@@ -132,6 +202,7 @@
         <p><strong>Element:</strong> ${element}</p>
         <p>${result.description}</p>
         <p><a href="${result.link}" target="_blank">Learn more</a></p>
+        <p>As a ${name.toLowerCase()}, you're tied to ${element.toLowerCase()}—like the ${element.toLowerCase()} that shapes your path. Your ${result.name} shows who you are—${result.description.toLowerCase()}</p>
       `;
       document.getElementById('result').innerHTML = output;
     }
