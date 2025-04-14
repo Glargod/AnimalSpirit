@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spirit Vibe Quiz</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #2b3d2b; color: #f4e8c1; max-width: 700px; margin: 20px auto; padding: 20px; padding-top: 80px; }
+        h1 { text-align: center; color: #e07b39; position: fixed; top: 0; left: 0; width: 100%; background: #2b3d2b; margin: 0; padding: 10px 0; z-index: 1000; }
+        .question { margin: 25px 0; }
+        label { display: block; margin: 5px 0; }
+        button { background: #e07b39; color: #2b3d2b; padding: 10px 20px; border: none; cursor: pointer; font-size: 16px; margin: 10px 5px; }
+        button:hover { background: #f4e8c1; }
+        #result { margin-top: 20px; padding: 15px; background: #3e5c3e; border-radius: 5px; display: none; }
+        #error { color: #e07b39; display: none; }
+        a { color: #e07b39; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>Find Your Spirit Animal</h1>
+    <form id="quizForm">
+        <!-- Questions will be dynamically inserted here -->
+    </form>
+    <div>
+        <button type="submit" form="quizForm">Show My Animal!</button>
+        <button type="button" id="resetButton">Reset Quiz</button>
+    </div>
+    <div id="result"></div>
+    <div id="error"></div>
+
+    <script>
+        const personalityTypes = {
+            ENTJ: { name: 'Leader', element: 'Fire', beast: 'Dragon', isReal: false, desc: 'a fiery leader, smart and strong, like a magical Dragon that’s super brave.', goodAdj: 'Mighty', evilAdj: 'Ferocious', beastDesc: 'A mythical fire-breathing reptile, fierce and majestic.', wikiLink: 'https://en.wikipedia.org/wiki/Dragon' },
+            ENTP: { name: 'Thinker', element: 'Fire', beast: 'Griffin', isReal: false, desc: 'a clever thinker, full of ideas, like a magical Griffin flying high with fire.', goodAdj: 'Clever', evilAdj: 'Scheming', beastDesc: 'A legendary creature with the body of a lion and the head and wings of an eagle.', wikiLink: 'https://en.wikipedia.org/wiki/Griffin' },
+            ESTJ: { name: 'Boss', element: 'Fire', beast: 'Lion', isReal: true, desc: 'a strong boss, always in charge, like a real Lion roaring loud with fire power.', goodAdj: 'Noble', evilAdj: 'Ruthless', beastDesc: 'A powerful big cat, known as the king of the savanna.', wikiLink: 'https://en.wikipedia.org/wiki/Lion' },
+            ESTP: { name: 'Doer', element: 'Fire', beast: 'Tiger', isReal: true, desc: 'a bold doer, full of energy, like a real Tiger running fast with fire in its heart.', goodAdj: 'Bold', evilAdj: 'Savage', beastDesc: 'A large, striped feline, stealthy and strong in the wild.', wikiLink: 'https://en.wikipedia.org/wiki/Tiger' },
+            ENFJ: { name: 'Helper', element: 'Air', beast: 'Pegasus', isReal: false, desc: 'a kind helper, lifting others up, like a magical Pegasus flying free in the air.', goodAdj: 'Radiant', evilAdj: 'Deceptive', beastDesc: 'A mythical winged horse, symbolizing freedom and grace.', wikiLink: 'https://en.wikipedia.org/wiki/Pegasus' },
+            ENFP: { name: 'Dreamer', element: 'Air', beast: 'Phoenix', isReal: false, desc: 'a happy dreamer, always starting new, like a magical Phoenix rising in the air.', goodAdj: 'Vibrant', evilAdj: 'Chaotic', beastDesc: 'A fiery mythical bird that rises from its ashes, representing renewal.', wikiLink: 'https://en.wikipedia.org/wiki/Phoenix_(mythology)' },
+            ESFJ: { name: 'Friend', element: 'Air', beast: 'Swan', isReal: true, desc: 'a sweet friend, always caring, like a real Swan swimming pretty in the air.', goodAdj: 'Graceful', evilAdj: 'Vengeful', beastDesc: 'A graceful waterfowl, known for its elegance and loyalty.', wikiLink: 'https://en.wikipedia.org/wiki/Swan' },
+            ESFP: { name: 'Party Star', element: 'Air', beast: 'Parrot', isReal: true, desc: 'a fun party star, super bright, like a real Parrot singing loud in the air.', goodAdj: 'Cheerful', evilAdj: 'Mischievous', beastDesc: 'A colorful, talkative bird, often found in tropical regions.', wikiLink: 'https://en.wikipedia.org/wiki/Parrot' },
+            INTJ: { name: 'Planner', element: 'Earth', beast: 'Golem', isReal: false, desc: 'a smart planner, very strong, like a magical Golem standing tall on the earth.', goodAdj: 'Stalwart', evilAdj: 'Unyielding', beastDesc: 'A mythical animated being, often made of stone or clay, symbolizing strength.', wikiLink: 'https://en.wikipedia.org/wiki/Golem' },
+            INTP: { name: 'Brain', element: 'Earth', beast: 'Ent', isReal: false, desc: 'a deep thinker, super wise, like a magical Ent growing big on the earth.', goodAdj: 'Wise', evilAdj: 'Twisted', beastDesc: 'A tree-like guardian of the forest, wise and ancient.', wikiLink: 'https://en.wikipedia.org/wiki/Ent' },
+            ISTJ: { name: 'Worker', element: 'Earth', beast: 'Tortoise', isReal: true, desc: 'a steady worker, always careful, like a real Tortoise moving slow on the earth.', goodAdj: 'Steady', evilAdj: 'Stubborn', beastDesc: 'A slow-moving reptile with a hard shell, symbolizing patience.', wikiLink: 'https://en.wikipedia.org/wiki/Tortoise' },
+            ISTP: { name: 'Fixer', element: 'Earth', beast: 'Badger', isReal: true, desc: 'a cool fixer, good with hands, like a real Badger digging tough in the earth.', goodAdj: 'Resourceful', evilAdj: 'Fierce', beastDesc: 'A sturdy, burrowing mammal, known for its tenacity and independence.', wikiLink: 'https://en.wikipedia.org/wiki/Badger' },
+            INFJ: { name: 'Seer', element: 'Water', beast: 'Mermaid', isReal: false, desc: 'a wise seer, full of feelings, like a magical Mermaid swimming deep in water.', goodAdj: 'Mystical', evilAdj: 'Enigmatic', beastDesc: 'A mythical sea creature with the upper body of a human and the tail of a fish.', wikiLink: 'https://en.wikipedia.org/wiki/Mermaid' },
+            INFP: { name: 'Dreamy One', element: 'Water', beast: 'Selkie', isReal: false, desc: 'a gentle dreamer, super sweet, like a magical Selkie splashing in water.', goodAdj: 'Gentle', evilAdj: 'Elusive', beastDesc: 'A mythical seal that can transform into a human, tied to the sea.', wikiLink: 'https://en.wikipedia.org/wiki/Selkie' },
+            ISFJ: { name: 'Carer', element: 'Water', beast: 'Otter', isReal: true, desc: 'a loving carer, always helping, like a real Otter playing in the water.', goodAdj: 'Caring', evilAdj: 'Clingy', beastDesc: 'A playful, aquatic mammal, known for its social and caring nature.', wikiLink: 'https://en.wikipedia.org/wiki/Otter' },
+            ISFP: { name: 'Artist', element: 'Water', beast: 'Dolphin', isReal: true, desc: 'a free artist, full of heart, like a real Dolphin jumping happy in water.', goodAdj: 'Playful', evilAdj: 'Reckless', beastDesc: 'A highly intelligent marine mammal, known for its friendliness and agility.', wikiLink: 'https://en.wikipedia.org/wiki/Dolphin' }
+        };
+
+        const questions = [
+            `<div class="question"><p>Do you like hanging out with lots of people?</p><label><input type="radio" name="q1" value="E" required> A) Yes, I love it</label><label><input type="radio" name="q1" value="I"> B) No, I like being alone</label><label><input type="radio" name="q1" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>How do you chill after a long day?</p><label><input type="radio" name="q2" value="E" required> A) With friends</label><label><input type="radio" name="q2" value="I"> B) By myself</label><label><input type="radio" name="q2" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Are you loud or quiet?</p><label><input type="radio" name="q3" value="E" required> A) Loud</label><label><input type="radio" name="q3" value="I"> B) Quiet</label><label><input type="radio" name="q3" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you like being the star of the show?</p><label><input type="radio" name="q4" value="E" required> A) Yes, it’s fun</label><label><input type="radio" name="q4" value="I"> B) No, I stay in the back</label><label><input type="radio" name="q4" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>At a new place, what do you do?</p><label><input type="radio" name="q5" value="E" required> A) Make friends right away</label><label><input type="radio" name="q5" value="I"> B) Watch first, talk later</label><label><input type="radio" name="q5" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Are you super chatty or more chill?</p><label><input type="radio" name="q6" value="E" required> A) Chatty</label><label><input type="radio" name="q6" value="I"> B) Chill</label><label><input type="radio" name="q6" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you tell everyone your ideas?</p><label><input type="radio" name="q7" value="E" required> A) Yes, I share everything</label><label><input type="radio" name="q7" value="I"> B) No, I keep them to myself</label><label><input type="radio" name="q7" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you like team games or solo stuff?</p><label><input type="radio" name="q8" value="E" required> A) Team games</label><label><input type="radio" name="q8" value="I"> B) Solo stuff</label><label><input type="radio" name="q8" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you think about now or the future?</p><label><input type="radio" name="q9" value="S" required> A) Right now</label><label><input type="radio" name="q9" value="N"> B) What’s next</label><label><input type="radio" name="q9" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Are you more real or dreamy?</p><label><input type="radio" name="q10" value="S" required> A) Real</label><label><input type="radio" name="q10" value="N"> B) Dreamy</label><label><input type="radio" name="q10" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you trust facts or your gut?</p><label><input type="radio" name="q11" value="S" required> A) Facts</label><label><input type="radio" name="q11" value="N"> B) My gut</label><label><input type="radio" name="q11" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you care about small stuff or big ideas?</p><label><input type="radio" name="q12" value="S" required> A) Small stuff</label><label><input type="radio" name="q12" value="N"> B) Big ideas</label><label><input type="radio" name="q12" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you like real tasks or fun ideas?</p><label><input type="radio" name="q13" value="S" required> A) Real tasks</label><label><input type="radio" name="q13" value="N"> B) Fun ideas</label><label><input type="radio" name="q13" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Are you more down-to-earth or a dreamer?</p><label><input type="radio" name="q14" value="S" required> A) Down-to-earth</label><label><input type="radio" name="q14" value="N"> B) Dreamer</label><label><input type="radio" name="q14" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you stick to what works or try new stuff?</p><label><input type="radio" name="q15" value="S" required> A) What works</label><label><input type="radio" name="q15" value="N"> B) New stuff</label><label><input type="radio" name="q15" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you like doing the same thing or trying new things?</p><label><input type="radio" name="q16" value="S" required> A) Same thing</label><label><input type="radio" name="q16" value="N"> B) New things</label><label><input type="radio" name="q16" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you decide with your brain or your heart?</p><label><input type="radio" name="q17" value="T" required> A) Brain</label><label><input type="radio" name="q17" value="F"> B) Heart</label><label><input type="radio" name="q17" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Are you more fair or kind?</p><label><input type="radio" name="q18" value="T" required> A) Fair</label><label><input type="radio" name="q18" value="F"> B) Kind</label><label><input type="radio" name="q18" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you care more about what’s right or keeping peace?</p><label><input type="radio" name="q19" value="T" required> A) What’s right</label><label><input type="radio" name="q19" value="F"> B) Keeping peace</label><label><input type="radio" name="q19" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Are you more smart or caring?</p><label><input type="radio" name="q20" value="T" required> A) Smart</label><label><input type="radio" name="q20" value="F"> B) Caring</label><label><input type="radio" name="q20" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you think about rules or people’s feelings?</p><label><input type="radio" name="q21" value="T" required> A) Rules</label><label><input type="radio" name="q21" value="F"> B) Feelings</label><label><input type="radio" name="q21" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Are you more tough or gentle?</p><label><input type="radio" name="q22" value="T" required> A) Tough</label><label><input type="radio" name="q22" value="F"> B) Gentle</label><label><input type="radio" name="q22" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you like being strict or forgiving?</p><label><input type="radio" name="q23" value="T" required> A) Strict</label><label><input type="radio" name="q23" value="F"> B) Forgiving</label><label><input type="radio" name="q23" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you think more with your head or your heart?</p><label><input type="radio" name="q24" value="T" required> A) Head</label><label><input type="radio" name="q24" value="F"> B) Heart</label><label><input type="radio" name="q24" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you like plans or surprises?</p><label><input type="radio" name="q25" value="J" required> A) Plans</label><label><input type="radio" name="q25" value="P"> B) Surprises</label><label><input type="radio" name="q25" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Are you neat or messy?</p><label><input type="radio" name="q26" value="J" required> A) Neat</label><label><input type="radio" name="q26" value="P"> B) Messy</label><label><input type="radio" name="q26" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you make a list or just go for it?</p><label><input type="radio" name="q27" value="J" required> A) Make a list</label><label><input type="radio" name="q27" value="P"> B) Just go for it</label><label><input type="radio" name="q27" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Are you quick to decide or do you wait?</p><label><input type="radio" name="q28" value="J" required> A) Quick to decide</label><label><input type="radio" name="q28" value="P"> B) I wait</label><label><input type="radio" name="q28" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you like a schedule or doing things whenever?</p><label><input type="radio" name="q29" value="J" required> A) Schedule</label><label><input type="radio" name="q29" value="P"> B) Whenever</label><label><input type="radio" name="q29" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Are you super tidy or go-with-the-flow?</p><label><input type="radio" name="q30" value="J" required> A) Tidy</label><label><input type="radio" name="q30" value="P"> B) Go-with-the-flow</label><label><input type="radio" name="q30" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you finish stuff early or late?</p><label><input type="radio" name="q31" value="J" required> A) Early</label><label><input type="radio" name="q31" value="P"> B) Late</label><label><input type="radio" name="q31" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>Do you like things finished or open to change?</p><label><input type="radio" name="q32" value="J" required> A) Finished</label><label><input type="radio" name="q32" value="P"> B) Open to change</label><label><input type="radio" name="q32" value="Both"> C) Kinda both</label></div>`,
+            `<div class="question"><p>You’re at a costume party, and there’s a big bowl of candy. What do you do?</p><label><input type="radio" name="q33" value="Good" required> A) Share the candy with everyone</label><label><input type="radio" name="q33" value="Neutral"> B) Take a handful and keep to yourself</label><label><input type="radio" name="q33" value="Evil"> C) Sneak the whole bowl for later</label></div>`,
+            `<div class="question"><p>You’re playing a prank game with friends. What kind of prank do you pick?</p><label><input type="radio" name="q34" value="Good" required> A) A silly one that makes everyone laugh</label><label><input type="radio" name="q34" value="Neutral"> B) Skip the prank, just watch the fun</label><label><input type="radio" name="q34" value="Evil"> C) A sneaky one that scares someone</label></div>`,
+            `<div class="question"><p>You find a shiny treasure in the woods. What do you do with it?</p><label><input type="radio" name="q35" value="Good" required> A) Show it to your friends to share the excitement</label><label><input type="radio" name="q35" value="Neutral"> B) Keep it as a cool secret for yourself</label><label><input type="radio" name="q35" value="Evil"> C) Hide it so no one else can find it</label></div>`,
+            `<div class="question"><p>At a campfire, someone tells a spooky story. How do you add to it?</p><label><input type="radio" name="q36" value="Good" required> A) Make it fun and magical for everyone</label><label><input type="radio" name="q36" value="Neutral"> B) Just listen, don’t add anything</label><label><input type="radio" name="q36" value="Evil"> C) Turn it creepy to freak everyone out</label></div>`
+        ];
+
+        const form = document.getElementById('quizForm');
+        const resultDiv = document.getElementById('result');
+        const errorDiv = document.getElementById('error');
+        const resetButton = document.getElementById('resetButton');
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function renderQuestions() {
+            const shuffledQuestions = shuffle([...questions]);
+            form.innerHTML = shuffledQuestions.join('');
+        }
+
+        renderQuestions();
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            errorDiv.style.display = 'none';
+            try {
+                const answers = {};
+                for (let i = 1; i <= 36; i++) {
+                    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                    if (!selected) throw new Error(`Missing answer for question ${i}`);
+                    answers[`q${i}`] = selected.value;
+                }
+
+                const scores = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0, Good: 0, Neutral: 0, Evil: 0 };
+                for (let i = 1; i <= 36; i++) {
+                    const answer = answers[`q${i}`];
+                    if (i <= 8) {
+                        if (answer === 'Both') {
+                            scores.E += 0.5;
+                            scores.I += 0.5;
+                        } else {
+                            scores[answer]++;
+                        }
+                    } else if (i <= 16) {
+                        if (answer === 'Both') {
+                            scores.S += 0.5;
+                            scores.N += 0.5;
+                        } else {
+                            scores[answer]++;
+                        }
+                    } else if (i <= 24) {
+                        if (answer === 'Both') {
+                            scores.T += 0.5;
+                            scores.F += 0.5;
+                        } else {
+                            scores[answer]++;
+                        }
+                    } else if (i <= 32) {
+                        if (answer === 'Both') {
+                            scores.J += 0.5;
+                            scores.P += 0.5;
+                        } else {
+                            scores[answer]++;
+                        }
+                    } else {
+                        scores[answer]++;
+                    }
+                }
+
+                const EorI = scores.E >= scores.I ? 'E' : 'I';
+                const SorN = scores.S >= scores.N ? 'S' : 'N';
+                const TorF = scores.T >= scores.F ? 'T' : 'F';
+                const JorP = scores.J >= scores.P ? 'J' : 'P';
+
+                let alignment;
+                if (scores.Good > scores.Neutral && scores.Good > scores.Evil) {
+                    alignment = 'Good';
+                } else if (scores.Evil > scores.Good && scores.Evil > scores.Neutral) {
+                    alignment = 'Evil';
+                } else {
+                    alignment = 'Neutral';
+                }
+
+                const mbtiType = `${EorI}${SorN}${TorF}${JorP}`;
+                const personality = personalityTypes[mbtiType];
+
+                let beastDesc = personality.desc;
+                let beastName = personality.beast;
+                if (alignment === 'Good') {
+                    beastName = `${personality.goodAdj} ${beastName}`;
+                    beastDesc = beastDesc.replace('like a', `like a ${personality.goodAdj.toLowerCase()}`);
+                } else if (alignment === 'Evil') {
+                    beastName = `${personality.evilAdj} ${beastName}`;
+                    beastDesc = beastDesc.replace('like a', `like a ${personality.evilAdj.toLowerCase()}`).replace('magical', 'shadowy').replace('real', 'twisted') + ' who uses power to play tricks';
+                } else {
+                    beastDesc = beastDesc.replace('like a', 'like a neutral').replace('magical', 'calm').replace('real', 'chill') + ' who watches but doesn’t pick a side';
+                }
+
+                let revealText = `<h2>You’re a ${personality.name}: The <a href="${personality.wikiLink}" target="_blank">${beastName}</a></h2>`;
+                revealText += `<p>Your animal is ${personality.isReal ? 'a real' : 'a magical'} ${beastName}! ${personality.beastDesc} It’s ${beastDesc}.</p>`;
+                revealText += `<p><em>Why it’s you:</em> As a ${personality.name.toLowerCase()}, you’re tied to ${personality.element.toLowerCase()}—like ${personality.element === 'Fire' ? 'a big fire that’s all action' : personality.element === 'Air' ? 'the air that’s free and fun' : personality.element === 'Earth' ? 'the earth that’s strong and steady' : 'water that’s deep and caring'}. Your ${beastName} shows who you are—${personality.isReal ? 'a real animal living in the wild' : 'a magical creature from old stories'} with a ${alignment.toLowerCase()} heart!</p>`;
+
+                resultDiv.innerHTML = revealText;
+                resultDiv.style.display = 'block';
+            } catch (err) {
+                errorDiv.innerHTML = `Oops, something broke: ${err.message}. Try again!`;
+                errorDiv.style.display = 'block';
+            }
+        });
+
+        resetButton.addEventListener('click', () => {
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.checked = false;
+            });
+            resultDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+            renderQuestions();
+        });
+    </script>
+</body>
+</html>
